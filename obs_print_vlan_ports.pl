@@ -25,6 +25,10 @@ SELECT device_id , hostname , sysName , ip
 FROM devices;
 EODV
 
+my @devices = retrieve_sql($dv_sql);
+print scalar @devices . " devices: rows found.\n";
+# print '\@devices = ', Dumper(\@devices);
+
 my $pv_sql = <<"EOPV";
 SELECT port_vlan_id, vlan, device_id, port_id 
 FROM ports_vlans 
@@ -32,19 +36,28 @@ WHERE vlan > 1
 ORDER BY device_id, vlan, port_id
 EOPV
 
+my @port_vlans = retrieve_sql($pv_sql);
+print scalar @port_vlans . " port_vlans: rows found.\n";
+# print '\@port_vlans = ', Dumper(\@port_vlans);
+
 my $pt_sql = <<"EOPT";
 SELECT port_id,  port_label , ifIndex, ifType, ifPhysAddress, ifVlan, ifTrunk   
 FROM ports 
 EOPT
+
+my @ports= retrieve_sql($pt_sql);
+print scalar @ports . " ports: rows found.\n";
+# print '\@ports = ', Dumper(\@ports);
+
 
 my $vl_sql = <<"EOVL";
 SELECT vlan_ID, vlan_vlan, vlan_name from vlans 
 ORDER by vlan_vlan
 EOVL
 
-my @devices = retrieve_sql($dv_sql);
-print scalar @devices . " devices: rows found.\n";
-print Dumper(\@devices);
+my @vlans = retrieve_sql($vl_sql);
+print scalar @vlans . " vlans: rows found.\n";
+# print '\@vlans = ' , Dumper(\@vlans);
 
 
 
