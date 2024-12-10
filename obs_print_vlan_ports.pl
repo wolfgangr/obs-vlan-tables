@@ -24,6 +24,14 @@ $sth->execute() or die 'execution failed: ' . $dbh->errstr();
 
 print $sth->rows() . " rows found.\n";
 
+my @devices;
+while (my  $row = $sth->fetchrow_hashref()) {
+  push @devices, $row;
+}
+
+
+print Dumper(\@devices);
+
 # my $sth = $dbh->prepare(
 #    'SELECT id, first_name, last_name FROM authors WHERE last_name = ?'
 # ) or die 'prepare statement failed: ' . $dbh->errstr();
