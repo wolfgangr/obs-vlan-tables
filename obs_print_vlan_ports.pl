@@ -88,7 +88,13 @@ for my $col (sort { $a <=> $b } keys %vlan_names) {
 # row headers aka devices
 # print '\@devices = ', Dumper(\@devices);
 my %devices_by_name = map { ( $_->{'sysName'} , $_  ) } @devices;
-print '\%devices_name = ', Dumper(\%devices_by_name);
+# print '\%devices_name = ', Dumper(\%devices_by_name);
+print "-------- row headers ------------\n";
+for my $row (sort keys %devices_by_name) {
+  my $dev_ref = $devices_by_name{$row} ;
+  printf "device id = %3d; IP = %14s; name = %s \n", 
+	$dev_ref->{device_id}, $dev_ref->{ip}, $dev_ref->{sysName};
+}
 
 
 
