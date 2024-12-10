@@ -77,14 +77,11 @@ my %vlans_byID = map { ( $_->{vlan_ID} , $_  ) } @vlans;
 # column headers aka vlans
 my %vlan_names = map { ( $_->{vlan_vlan} , $_  ) } 
 	grep { $_->{device_ID} == $label_device } @vlans;
-# printf "vlan names defined: %i\n", (scalar (keys  %vlan_names));
 # print '\%vlan_names = ', Dumper(\%vlan_names);
 
 print "-------- column headers ------------\n";
 my @columns;
 for my $col (sort { $a <=> $b } keys %vlan_names) {
-  # my $vl_ref = $vlan_names{$col} ;
-  # push @columns, $vl_ref;
   push @columns, $vlan_names{$col} ;
 }
 # print '\@columns = ', Dumper(\@columns);
@@ -99,18 +96,13 @@ my %devices_by_name = map { ( $_->{'sysName'} , $_  ) } @devices;
 print "-------- row headers ------------\n";
 my @rows;
 for my $row (sort keys %devices_by_name) {
-  # my $dev_ref = $devices_by_name{$row} ;
-  # push @rows, $dev_ref;
   push @rows, $devices_by_name{$row} ;
 }
 # print '\@rows = ', Dumper(\@rows);
 for (@rows) {
   printf "device id = %3d; IP = %14s; name = %s \n", 
         $_->{device_id}, $_->{ip}, $_->{sysName};
-
 }
-
-
 
 die "####==========================~~~~~~~~~~~~~~~~~~~~-----------------------";
 # rehash port data
