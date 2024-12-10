@@ -120,6 +120,9 @@ $tb->load(['device', 'name', 'IP' ,  map { $_->{vlan_name} } @columns]);
 for my $r (@rows) {
   my @row;
   push @row, $r->{device_id}, $r->{sysName}, $r->{ip};
+  for my $c (@columns) {
+    push @row, sprintf " %4d -> %s ", $_->{vlan_vlan}, $_->{vlan_name};
+  }
   $tb->load([@row]);
 }
 
