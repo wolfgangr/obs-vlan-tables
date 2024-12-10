@@ -18,28 +18,26 @@ require './credentials.in';
 my $dsn = "DBI:mysql:database=$database;host=$hostname";
 my $dbh = DBI->connect($dsn, $user, $password);
 
+print "established database connection to $database @ $hostname\n";
+
+
 my $sql = 'SELECT device_id , hostname , sysName , ip FROM devices;';
-my $sth = $dbh->prepare($sql) or die $dbh->errstr();
-$sth->execute() or die 'execution failed: ' . $dbh->errstr();
+# my $sth = $dbh->prepare($sql) or die $dbh->errstr();
+# $sth->execute() or die 'execution failed: ' . $dbh->errstr();
 
-print $sth->rows() . " rows found.\n";
+# print $sth->rows() . " rows found.\n";
 
-my @devices;
-while (my  $row = $sth->fetchrow_hashref()) {
-  push @devices, $row;
-}
+# my @devices;
+# while (my  $row = $sth->fetchrow_hashref()) {
+#   push @devices, $row;
+# }
 
+my @devices = retrieve_sql($sql);
+
+print scalar @devices . " rows found.\n";
 
 print Dumper(\@devices);
 
-# my $sth = $dbh->prepare(
-#    'SELECT id, first_name, last_name FROM authors WHERE last_name = ?'
-# ) or die 'prepare statement failed: ' . $dbh->errstr();
-# $sth->execute('Eggers') or die 'execution failed: ' . $dbh->errstr();
-# print $sth->rows() . " rows found.\n";
-# while (my $ref = $sth->fetchrow_hashref()) {
-#     print "Found a row: id = $ref->{'id'}, fn = $ref->{'first_name'}\n";
-# }
 
 
 
@@ -47,6 +45,21 @@ print Dumper(\@devices);
 
 exit;
 #============ subs =========================================
+
+# my \@result = retrieve_sql ($sql) 
+sub retrieve_sql {
+  my $sql = shift;
+  my $sth = $dbh->prepare($sql) or die $dbh->errstr();
+  $sth->execute() or die 'execution failed: ' . $dbh->errstr();
+
+  my @ret;
+  while (my  $row = $sth->fetchrow_hashref()) {
+    push @ret, $row;
+  }
+  return @ret;
+
+}
+
 
 sub debug {
   my ($l, $msg) = @_;
