@@ -87,8 +87,8 @@ for my $col (sort { $a <=> $b } keys %vlan_names) {
 
 # row headers aka devices
 # print '\@devices = ', Dumper(\@devices);
-# my %devices_byID = map { ( $_->{'device_id'} , $_  ) } @devices;
-print '\%devices_byID = ', Dumper(\%devices_byID);
+my %devices_by_name = map { ( $_->{'sysName'} , $_  ) } @devices;
+print '\%devices_name = ', Dumper(\%devices_by_name);
 
 
 
