@@ -81,7 +81,7 @@ print '\%vlan_names = ', Dumper(\%vlan_names);
 
 print "-------- column headers ------------\n";
 for my $col (sort { $a <=> $b } keys %vlan_names) {
-  my $vl_ref = %vlan_names{$col} ;
+  my $vl_ref = $vlan_names{$col} ;
   printf "vlan tag: %4d - name: %s\n", $vl_ref->{vlan_vlan}, $vl_ref->{vlan_name};
 }
 
@@ -96,10 +96,22 @@ for my $row (sort keys %devices_by_name) {
 	$dev_ref->{device_id}, $dev_ref->{ip}, $dev_ref->{sysName};
 }
 
-
-
-
 # rehash port data
+# my $portmap->{device}->{vlan}= \@portlist
+print '\@port_vlans = ', Dumper(\@port_vlans);
+my %portmap = ();
+for my $r (@port_vlans) {
+  # push @{$portmap->{$r->{device_id}}->{$r->{vlan}}}, $r; 
+  # my @pushable; 
+  unless ($portmap{$r->{device_id}}->{$r->{vlan}} ) {
+    $portmap{$r->{device_id}}->{$r->{vlan}} = [] ;
+  }
+  my @pushable = @{$portmap{$r->{device_id}}->{$r->{vlan}}} ; 
+  push @pushable, $r;
+  # print Dumper(\$r);
+}
+print '\%portmap = ', Dumper(\%portmap);
+
 
 # build table
 
