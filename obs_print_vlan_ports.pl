@@ -115,7 +115,8 @@ for my $r (@port_vlans) {
 
 
 # build table
-my $tb = Text::Table->new('*' x 2 ,  map { $_->{vlan_vlan} } @columns);
+my $tb = Text::Table->new('' x 2 ,  map { $_->{vlan_vlan} } @columns);
+$tb->load(['' x 2 ,  map { $_->{vlan_name} } @columns]);
 
 
 
