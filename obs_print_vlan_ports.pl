@@ -8,6 +8,7 @@ use warnings;
 use strict;
 use Data::Dumper;   
 use DBI;
+use Text::Table; 
 
 my $debug = 5;
 my $label_device = 21;  # device_ID where the vlan-labels are authoritative
@@ -76,37 +77,49 @@ my %vlans_byID = map { ( $_->{vlan_ID} , $_  ) } @vlans;
 # column headers aka vlans
 my %vlan_names = map { ( $_->{vlan_vlan} , $_  ) } 
 	grep { $_->{device_ID} == $label_device } @vlans;
-printf "vlan names defined: %i\n", (scalar (keys  %vlan_names));
+# printf "vlan names defined: %i\n", (scalar (keys  %vlan_names));
 print '\%vlan_names = ', Dumper(\%vlan_names);
 
 print "-------- column headers ------------\n";
+my @columns;
 for my $col (sort { $a <=> $b } keys %vlan_names) {
   my $vl_ref = $vlan_names{$col} ;
-  printf "vlan tag: %4d - name: %s\n", $vl_ref->{vlan_vlan}, $vl_ref->{vlan_name};
+  # printf "vlan tag: %4d - name: %s\n", $vl_ref->{vlan_vlan}, $vl_ref->{vlan_name};
+  push @columns, $vl_ref;
+}
+print '\@columns = ', Dumper(\@columns);
+for (@columns) {
+   printf "vlan tag: %4d - name: %s\n", $_->{vlan_vlan}, $_->{vlan_name};
 }
 
+
+exit;
 # row headers aka devices
 # print '\@devices = ', Dumper(\@devices);
 my %devices_by_name = map { ( $_->{'sysName'} , $_  ) } @devices;
 # print '\%devices_name = ', Dumper(\%devices_by_name);
-print "-------- row headers ------------\n";
+# print "-------- row headers ------------\n";
 for my $row (sort keys %devices_by_name) {
   my $dev_ref = $devices_by_name{$row} ;
-  printf "device id = %3d; IP = %14s; name = %s \n", 
+  # printf "device id = %3d; IP = %14s; name = %s \n", 
 	$dev_ref->{device_id}, $dev_ref->{ip}, $dev_ref->{sysName};
 }
 
 # rehash port data
 # my $portmap->{device}->{vlan}= \@portlist
-print '\@port_vlans = ', Dumper(\@port_vlans);
+# print '\@port_vlans = ', Dumper(\@port_vlans);
 my %portmap = ();
 for my $r (@port_vlans) {
   push @{$portmap{$r->{device_id}}->{$r->{vlan}}}, $r;
 }
-print '\%portmap = ', Dumper(\%portmap);
+# print '\%portmap = ', Dumper(\%portmap);
 
 
 # build table
+# my $tb = Text::Table->new('', '', 
+
+
+
 
 # print table
 
