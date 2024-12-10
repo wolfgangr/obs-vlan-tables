@@ -104,7 +104,6 @@ for (@rows) {
         $_->{device_id}, $_->{ip}, $_->{sysName};
 }
 
-die "####==========================~~~~~~~~~~~~~~~~~~~~-----------------------";
 # rehash port data
 # my $portmap->{device}->{vlan}= \@portlist
 # print '\@port_vlans = ', Dumper(\@port_vlans);
@@ -116,12 +115,13 @@ for my $r (@port_vlans) {
 
 
 # build table
-# my $tb = Text::Table->new('', '', 
+my $tb = Text::Table->new('*' x 2 ,  map { $_->{vlan_vlan} } @columns);
 
 
 
 
 # print table
+print $tb;
 
 exit;
 #============ subs =========================================
