@@ -117,10 +117,10 @@ for my $r (@port_vlans) {
 # build table
 my $tb = Text::Table->new('' , '', 'vlan-ID ->' ,  map { $_->{vlan_vlan} } @columns);
 $tb->load(['device', 'name', 'IP' ,  map { $_->{vlan_name} } @columns]);
-for (@rows) {
-  my @r;
-  push @r, $_->{device_id}, $_->{sysName}, $_->{ip};
-  $tb->load([@r]);
+for my $r (@rows) {
+  my @row;
+  push @row, $r->{device_id}, $r->{sysName}, $r->{ip};
+  $tb->load([@row]);
 }
 
 
