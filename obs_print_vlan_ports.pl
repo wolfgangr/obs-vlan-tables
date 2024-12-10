@@ -57,7 +57,7 @@ EOPT
 my @ports= retrieve_sql($pt_sql);
 print scalar @ports . " ports: rows found.\n";
 # print '\@ports = ', Dumper(\@ports);
-my %ports_byID = map { ( $_->{'port_id'} , $_  ) } @ports;
+my %ports_byID = map { ( $_->{port_id} , $_  ) } @ports;
 # print '\%ports_byID = ', Dumper(\%ports_byID);
 
 # --- vlans ---
@@ -69,15 +69,20 @@ EOVL
 my @vlans = retrieve_sql($vl_sql);
 print scalar @vlans . " vlans: rows found.\n";
 # print '\@vlans = ' , Dumper(\@vlans);
-my %vlans_byID = map { ( $_->{'vlan_ID'} , $_  ) } @vlans;
+my %vlans_byID = map { ( $_->{vlan_ID} , $_  ) } @vlans;
 # print '\%vlans_byID = ', Dumper(\%vlans_byID);
 
-my %vlan_names = map { ( $_->{'vlan_vlan'} , $_  ) } 
+# column headers aka vlans
+my %vlan_names = map { ( $_->{vlan_vlan} , $_  ) } 
 	grep { $_->{device_ID} == $label_device } @vlans;
 printf "vlan names defined: %i\n", (scalar (keys  %vlan_names));
 print '\%vlan_names = ', Dumper(\%vlan_names);
 
-# column headers aka vlans
+print "-------- column headers ------------\n";
+for my $col (sort { $a <=> $b } keys %vlan_names) {
+  my $vl_ref = %vlan_names{$col} ;
+  printf "vlan tag: %4d - name: %s\n", $vl_ref->{vlan_vlan}, $vl_ref->{vlan_name};
+}
 
 # row headers aka devices
 
