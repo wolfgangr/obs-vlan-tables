@@ -92,19 +92,28 @@ for (@columns) {
    printf "vlan tag: %4d - name: %s\n", $_->{vlan_vlan}, $_->{vlan_name};
 }
 
-
-exit;
 # row headers aka devices
 # print '\@devices = ', Dumper(\@devices);
 my %devices_by_name = map { ( $_->{'sysName'} , $_  ) } @devices;
 # print '\%devices_name = ', Dumper(\%devices_by_name);
-# print "-------- row headers ------------\n";
+print "-------- row headers ------------\n";
+my @rows;
 for my $row (sort keys %devices_by_name) {
   my $dev_ref = $devices_by_name{$row} ;
   # printf "device id = %3d; IP = %14s; name = %s \n", 
-	$dev_ref->{device_id}, $dev_ref->{ip}, $dev_ref->{sysName};
+  #	$dev_ref->{device_id}, $dev_ref->{ip}, $dev_ref->{sysName};
+  push @rows, $dev_ref;
+}
+print '\@rows = ', Dumper(\@rows);
+for (@rows) {
+  printf "device id = %3d; IP = %14s; name = %s \n", 
+        $_->{device_id}, $_->{ip}, $_->{sysName};
+
 }
 
+
+
+die "####==========================~~~~~~~~~~~~~~~~~~~~-----------------------";
 # rehash port data
 # my $portmap->{device}->{vlan}= \@portlist
 # print '\@port_vlans = ', Dumper(\@port_vlans);
