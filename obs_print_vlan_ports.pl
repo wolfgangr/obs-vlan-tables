@@ -72,6 +72,7 @@ print scalar @vlans . " vlans: rows found.\n";
 my %vlans_byID = map { ( $_->{vlan_ID} , $_  ) } @vlans;
 # print '\%vlans_byID = ', Dumper(\%vlans_byID);
 
+# ================== reorganize data ==========================
 # column headers aka vlans
 my %vlan_names = map { ( $_->{vlan_vlan} , $_  ) } 
 	grep { $_->{device_ID} == $label_device } @vlans;
@@ -85,6 +86,12 @@ for my $col (sort { $a <=> $b } keys %vlan_names) {
 }
 
 # row headers aka devices
+# print '\@devices = ', Dumper(\@devices);
+# my %devices_byID = map { ( $_->{'device_id'} , $_  ) } @devices;
+print '\%devices_byID = ', Dumper(\%devices_byID);
+
+
+
 
 # rehash port data
 
