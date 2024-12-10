@@ -77,9 +77,15 @@ my %vlan_names = map { ( $_->{'vlan_vlan'} , $_  ) }
 printf "vlan names defined: %i\n", (scalar (keys  %vlan_names));
 print '\%vlan_names = ', Dumper(\%vlan_names);
 
+# column headers aka vlans
 
+# row headers aka devices
 
+# rehash port data
 
+# build table
+
+# print table
 
 exit;
 #============ subs =========================================
