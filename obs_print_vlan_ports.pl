@@ -111,7 +111,7 @@ my %portmap = ();
 for my $r (@port_vlans) {
   push @{$portmap{$r->{device_id}}->{$r->{vlan}}}, $r;
 }
-# print '\%portmap = ', Dumper(\%portmap);
+print '\%portmap = ', Dumper(\%portmap);
 
 
 # build table
@@ -121,7 +121,16 @@ for my $r (@rows) {
   my @row;
   push @row, $r->{device_id}, $r->{sysName}, $r->{ip};
   for my $c (@columns) {
-    push @row, sprintf " %4d -> %s ", $_->{vlan_vlan}, $_->{vlan_name};
+    # push @row, sprintf " %4d -> %s ", $_->{vlan_vlan}, $_->{vlan_name};
+     # push @row, sprintf " %s -> %s ", $r, $c;
+     # push @row, 
+    my $ports = $portmap{$r->{device_id}}->{$c->{vlan}} ;
+    my $entry;
+    for my $p (@$ports) {
+      my $entry .= $p->{port_id} . '|';
+    }
+    push @row,$entry;
+
   }
   $tb->load([@row]);
 }
@@ -130,7 +139,7 @@ for my $r (@rows) {
 
 
 # print table
-print $tb;
+# print $tb;
 
 exit;
 #============ subs =========================================
