@@ -70,9 +70,12 @@ my @vlans = retrieve_sql($vl_sql);
 print scalar @vlans . " vlans: rows found.\n";
 # print '\@vlans = ' , Dumper(\@vlans);
 my %vlans_byID = map { ( $_->{'vlan_ID'} , $_  ) } @vlans;
-print '\%vlans_byID = ', Dumper(\%vlans_byID);
+# print '\%vlans_byID = ', Dumper(\%vlans_byID);
 
-# my %vlan_names = map { ( $_->{'vlan_ID'} , $_  ) } @vlans;
+my %vlan_names = map { ( $_->{'vlan_vlan'} , $_  ) } 
+	grep { $_->{device_ID} == $label_device } @vlans;
+printf "vlan names defined: %i\n", (scalar (keys  %vlan_names));
+print '\%vlan_names = ', Dumper(\%vlan_names);
 
 
 
