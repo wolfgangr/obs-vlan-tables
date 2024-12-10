@@ -17,26 +17,35 @@ require './credentials.in';
 # my $dsn = "DBI:MariaDB:database=$database;host=$hostname";
 my $dsn = "DBI:mysql:database=$database;host=$hostname";
 my $dbh = DBI->connect($dsn, $user, $password);
-
 print "established database connection to $database @ $hostname\n";
+#--------------------------------------------------------------------------
 
+my $dv_sql = <<"EODV";
+SELECT device_id , hostname , sysName , ip 
+FROM devices;
+EODV
 
-my $sql = 'SELECT device_id , hostname , sysName , ip FROM devices;';
-# my $sth = $dbh->prepare($sql) or die $dbh->errstr();
-# $sth->execute() or die 'execution failed: ' . $dbh->errstr();
+my $pv_sql = <<"EOPV";
+SELECT port_vlan_id, vlan, device_id, port_id 
+FROM ports_vlans 
+WHERE vlan > 1
+ORDER BY device_id, vlan, port_id
+EOPV
 
-# print $sth->rows() . " rows found.\n";
+my $pt_sql = <<"EOPT";
+SELECT port_id,  port_label , ifIndex, ifType, ifPhysAddress, ifVlan, ifTrunk   
+FROM ports 
+EOPT
 
-# my @devices;
-# while (my  $row = $sth->fetchrow_hashref()) {
-#   push @devices, $row;
-# }
+my $vl_sql = <<"EOVL";
+SELECT vlan_ID, vlan_vlan, vlan_name from vlans 
+ORDER by vlan_vlan
+EOVL
 
-my @devices = retrieve_sql($sql);
-
-print scalar @devices . " rows found.\n";
-
+my @devices = retrieve_sql($dv_sql);
+print scalar @devices . " devices: rows found.\n";
 print Dumper(\@devices);
+
 
 
 
