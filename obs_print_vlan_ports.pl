@@ -101,15 +101,7 @@ for my $row (sort keys %devices_by_name) {
 print '\@port_vlans = ', Dumper(\@port_vlans);
 my %portmap = ();
 for my $r (@port_vlans) {
-  # push @{$portmap->{$r->{device_id}}->{$r->{vlan}}}, $r; 
-  # my @pushable; 
-  unless ($portmap{$r->{device_id}}->{$r->{vlan}} ) {
-    $portmap{$r->{device_id}}->{$r->{vlan}} = [] ;
-  }
-  # my @pushable = @{$portmap{$r->{device_id}}->{$r->{vlan}}} ; 
-  # push @pushable, $r;
   push @{$portmap{$r->{device_id}}->{$r->{vlan}}}, $r;
-  # print Dumper(\$r);
 }
 print '\%portmap = ', Dumper(\%portmap);
 
