@@ -12,15 +12,28 @@ use DBI;
 use Text::Table; 
 use Getopt::Long;
 
+# default settings, may be overriden by cmd line options
 my $debug = 3;
 my $label_device = 21;  # device_ID where the vlan-labels are authoritative
 my $min_vlan = 2;       # lowest vlan number to display
+my $credential_file = './credentials.in';
 
 my %options =();
 GetOptions (  \%options,
+	   "vlan|v=s",	# <vlan   grep pattern>      - default ''
+	 "device|i=s",	# <device grep pattern>      - default ''
+	  "minvl|m=i",	# <min vlan ID>              - default $min_vlan
+  	 "labeld|l=i",  # <device ID> 	- default $label_device
+  	   "user|u=s",  # <./file>  - default '$credential_file'
 
-        "debug|d=i",            # debug level
-        "help|h|?",
+  	    "csv|c", 
+  	   "html|t",
+  	 "pretty|y",
+  	   "dump|p",
+
+
+          "debug|d=i",            # debug level
+           "help|h|?",
                 ) or usage ();
 
 if ($options{help}) {
@@ -29,10 +42,15 @@ if ($options{help}) {
 
 $debug = $options{debug} // $debug;
 debug(5, '\%config: ' . Dumper(\%options));
+$credential_file 	= $options{user} 	// $credential_file;
+$label_device 		= $options{labeld}	// $label_device;
+$min_vlan 		= $options{minvl} 	// $min_vlan;
 
+
+exit if $debug >= 6;
 
 our ($hostname, $database, $user, $password);
-require './credentials.in';
+require  $credential_file; #  './credentials.in';
 
 # my $dsn = "DBI:MariaDB:database=$database;host=$hostname";
 my $dsn = "DBI:mysql:database=$database;host=$hostname";
@@ -93,8 +111,11 @@ my %vlans_byID = map { ( $_->{vlan_ID} , $_  ) } @vlans;
 
 # ================== reorganize data ==========================
 # column headers aka vlans
-my %vlan_names = map { ( $_->{vlan_vlan} , $_  ) } 
-	grep { $_->{device_ID} == $label_device } @vlans;
+my $re = qr/$options{vlan}/;
+my %vlan_names = map { ( $_->{vlan_vlan} , $_ ) } 
+	grep { $_->{vlan_vlan} =~ /$re/ or $_->{vlan_name} =~ /$re/ }
+	grep { $_->{device_ID} == $label_device } 
+	@vlans;
 # print '\%vlan_names = ', Dumper(\%vlan_names);
 
 # print "-------- column headers ------------\n";
@@ -213,12 +234,27 @@ sub uniq {
 }
 
 sub usage {
-        print  <<EOU;
+# print "$0:\n";
+        print  <<"EOU";
+$0
+retrieve port assignemnt to vlans per device 
+from observium database
+  -v|vlan    <vlan   grep pattern>      - default ''
+  -g|device  <device grep pattern>      - default ''
+  -m|minvl   <min vlan ID>		- default $min_vlan
+  -l|labeld  <device ID>                - default $label_device
+	device from which vlan label names are used
+  -u|--user <./file>     	        - default '$credential_file'
+	database credential file (perl syntax)
+
+table output format
+  -c|csv
+  -h|html
+  -y|pretty
+  -p|dump
 
 Supplementary commands:
-
-  -d|--debug <level>
-
+  -d|--debug <level>   - default: $debug
   -h|--help
         show this message
 
