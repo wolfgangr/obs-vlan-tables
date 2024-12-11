@@ -126,6 +126,15 @@ debug (3, scalar @vlans . " vlans: rows found.\n");
 my %vlans_byID = map { ( $_->{vlan_ID} , $_  ) } @vlans;
 # print '\%vlans_byID = ', Dumper(\%vlans_byID);
 
+if ($outmode eq 'dump') { 
+  # print Data::Dumper->Dump([$foo, $bar], [qw(foo *ary)]);
+  # print Data::Dumper->Dump ([\%vlans_byID] );
+  print Data::Dumper->Dump (
+	[   \@vlans, \@ports, \@port_vlans, \@devices  ], 
+	[qw (@vlans  @ports    @port_vlans   @devices)]);
+  exit;
+}
+
 # ================== reorganize data ==========================
 # column headers aka vlans
 my $re = qr/$grep_vlan/;
