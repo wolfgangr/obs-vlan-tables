@@ -45,7 +45,24 @@ debug(5, '\%config: ' . Dumper(\%options));
 $credential_file 	= $options{user} 	// $credential_file;
 $label_device 		= $options{labeld}	// $label_device;
 $min_vlan 		= $options{minvl} 	// $min_vlan;
+my $grep_device		= $options{device}	// '';
+my $grep_vlan		= $options{vlan}	// '';
 
+my $out_mask 
+	=  ($options{csv}    ? 8 : 0 )
+        |  ($options{html}   ? 4 : 0 )
+        |  ($options{pretty} ? 2 : 0 )
+        |  ($options{dump}   ? 1 : 0 ) ;
+
+my $outmode;
+if    ( $out_mask == 8 ) { $outmode = 'csv'    ; }
+elsif ( $out_mask == 4 ) { $outmode = 'html'   ; }
+elsif ( $out_mask == 2 ) { $outmode = 'pretty' ; }
+elsif ( $out_mask == 1 ) { $outmode = 'dump'   ; }
+elsif ( $out_mask == 0 ) { $outmode = 'pretty' ; }
+else {  die "select only one of output formats"; }
+
+debug(5, "\$outmode: $outmode \n");
 
 exit if $debug >= 6;
 
@@ -111,8 +128,9 @@ my %vlans_byID = map { ( $_->{vlan_ID} , $_  ) } @vlans;
 
 # ================== reorganize data ==========================
 # column headers aka vlans
-my $re = qr/$options{vlan}/;
-my %vlan_names = map { ( $_->{vlan_vlan} , $_ ) } 
+my $re = qr/$grep_vlan/;
+my %vlan_names = 
+	map { ( $_->{vlan_vlan} , $_ ) } 
 	grep { $_->{vlan_vlan} =~ /$re/ or $_->{vlan_name} =~ /$re/ }
 	grep { $_->{device_ID} == $label_device } 
 	@vlans;
@@ -130,7 +148,11 @@ for my $col (sort { $a <=> $b } keys %vlan_names) {
 
 # row headers aka devices
 # print '\@devices = ', Dumper(\@devices);
-my %devices_by_name = map { ( $_->{'sysName'} , $_  ) } @devices;
+my $re2 = qr/$grep_device/;
+my %devices_by_name = 
+	map { ( $_->{'sysName'} , $_  ) } 
+	grep { $_ =~ /$re2/ or $_->{sysName} =~ /$re2/ }
+	@devices;
 # print '\%devices_name = ', Dumper(\%devices_by_name);
 # print "-------- row headers ------------\n";
 my @rows;
@@ -154,17 +176,10 @@ for my $r (@port_vlans) {
 
 
 # build table
-# my $tb = Text::Table->new('' , '', 'vlan-ID ->' ,  map { '| ' . $_->{vlan_vlan} } @columns);
 my @header1 = ('device' , 'name', 'IP' ,  map {  $_->{vlan_vlan} } @columns);
-# $tb->load(['device', 'name', 'IP' ,  map { '| ' . $_->{vlan_name} } @columns]);
 my @header2 = ('', '', '' ,  map {  $_->{vlan_name} } @columns);
-# my @headers = ( "\ndevice" , "\nname", "vlan-ID ->\nIP" );
-# push @headers, map {  
-#           $_->{vlan_vlan} . "\n" . $_->{vlan_name}  
-#    }  @columns; 
 
 my @body; 
-# push @body , \@header2;
 for my $r (@rows) {
   my @row;
   push @row, $r->{device_id}, $r->{sysName}, $r->{ip};
@@ -176,21 +191,21 @@ for my $r (@rows) {
       $entry .= '-U' if $ports_byID{ $p->{port_id} }->{'ifVlan'} == $c->{vlan_vlan} ; 
       push @entries, $entry;
     }
-    # push @row, join "|", @entries  ;
     push @row, join "\n ", @entries  ;
   }
-  # $tb->load([@row]);
   push  @body, \@row ;
 }
 
-if (0) {       # ----  Data::Table output
-  # ----  Data::Table output
+if ($outmode eq 'html' or $outmode eq 'csv') {       # ----  Data::Table output
   unshift @body, \@header2;
   my $table = Data::Table->new(\@body, \@header1  , 0);
-  print $table->csv;
-  # print $table->html;
+  if ($outmode eq 'csv') {
+    print $table->csv;
+  } elsif ($outmode eq 'html') {
+    print $table->html;
+  } else { die "not implemented" ; }
 
-} else {       # ----- Text::Table output
+} elsif ($outmode eq 'pretty') {       # ----- Text::Table output
    
   my @tt_header = (\'|') ;
   for my $i ( 0 .. $#header1) {
@@ -201,7 +216,10 @@ if (0) {       # ----  Data::Table output
   my $tb = Text::Table->new( @tt_header );
   $tb->load( @body);
   print $tb;
-}
+} elsif ($outmode eq 'dump') {      # ------ Data::Dumper output
+  die "TBD: Data::Dumper output";
+} else { die "\$outmode $outmode  not implemented" ; }
+
 
 exit;
 #============ subs =========================================
@@ -240,7 +258,7 @@ $0
 retrieve port assignemnt to vlans per device 
 from observium database
   -v|vlan    <vlan   grep pattern>      - default ''
-  -g|device  <device grep pattern>      - default ''
+  -i|device  <device grep pattern>      - default ''
   -m|minvl   <min vlan ID>		- default $min_vlan
   -l|labeld  <device ID>                - default $label_device
 	device from which vlan label names are used
@@ -249,7 +267,7 @@ from observium database
 
 table output format
   -c|csv
-  -h|html
+  -t|html
   -y|pretty
   -p|dump
 
