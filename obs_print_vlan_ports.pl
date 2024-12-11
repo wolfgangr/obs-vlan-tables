@@ -10,10 +10,26 @@ use Data::Dumper;
 use Data::Table;
 use DBI;
 use Text::Table; 
+use Getopt::Long;
 
 my $debug = 3;
 my $label_device = 21;  # device_ID where the vlan-labels are authoritative
 my $min_vlan = 2;       # lowest vlan number to display
+
+my %options =();
+GetOptions (  \%options,
+
+        "debug|d=i",            # debug level
+        "help|h|?",
+                ) or usage ();
+
+if ($options{help}) {
+        usage ();
+}
+
+$debug = $options{debug} // $debug;
+debug(5, '\%config: ' . Dumper(\%options));
+
 
 our ($hostname, $database, $user, $password);
 require './credentials.in';
@@ -195,4 +211,20 @@ sub uniq {
     my %seen;
     grep !$seen{$_}++, @_;
 }
+
+sub usage {
+        print  <<EOU;
+
+Supplementary commands:
+
+  -d|--debug <level>
+
+  -h|--help
+        show this message
+
+EOU
+        exit (0);
+} # - end of sub usage -
+
+
 
