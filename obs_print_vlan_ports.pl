@@ -147,7 +147,7 @@ for my $r (@rows) {
 
 my $table = Data::Table->new(\@body, [ @header1 ] , 0);
 print $table->csv;
-
+print $table->html;
 # print table
 # print $tb;
 
