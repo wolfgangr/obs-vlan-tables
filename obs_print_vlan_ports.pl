@@ -179,6 +179,11 @@ for my $r (@port_vlans) {
 my @header1 = ('device' , 'name', 'IP' ,  map {  $_->{vlan_vlan} } @columns);
 my @header2 = ('', '', '' ,  map {  $_->{vlan_name} } @columns);
 
+my $sep =  "\n ";
+if ($outmode eq 'csv') {
+  $sep = '|';
+}
+
 my @body; 
 for my $r (@rows) {
   my @row;
@@ -191,7 +196,7 @@ for my $r (@rows) {
       $entry .= '-U' if $ports_byID{ $p->{port_id} }->{'ifVlan'} == $c->{vlan_vlan} ; 
       push @entries, $entry;
     }
-    push @row, join "\n ", @entries  ;
+    push @row, join $sep, @entries  ;
   }
   push  @body, \@row ;
 }
@@ -216,8 +221,8 @@ if ($outmode eq 'html' or $outmode eq 'csv') {       # ----  Data::Table output
   my $tb = Text::Table->new( @tt_header );
   $tb->load( @body);
   print $tb;
-} elsif ($outmode eq 'dump') {      # ------ Data::Dumper output
-  die "TBD: Data::Dumper output";
+# } elsif ($outmode eq 'dump') {      # ------ Data::Dumper output
+#   die "TBD: Data::Dumper output";
 } else { die "\$outmode $outmode  not implemented" ; }
 
 
