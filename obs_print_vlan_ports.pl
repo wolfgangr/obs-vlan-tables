@@ -12,7 +12,7 @@ use Text::Table;
 
 my $debug = 5;
 my $label_device = 21;  # device_ID where the vlan-labels are authoritative
-
+my $min_vlan = 2;       # lowest vlan number to display
 
 our ($hostname, $database, $user, $password);
 require './credentials.in';
@@ -39,7 +39,7 @@ my %devices_byID = map { ( $_->{'device_id'} , $_  ) } @devices;
 my $pv_sql = <<"EOPV";
 SELECT port_vlan_id, vlan, device_id, port_id 
 FROM ports_vlans 
-WHERE vlan > 1
+WHERE vlan >= $min_vlan
 ORDER BY device_id, vlan, port_id
 EOPV
 
@@ -64,6 +64,7 @@ my %ports_byID = map { ( $_->{port_id} , $_  ) } @ports;
 # --- vlans ---
 my $vl_sql = <<"EOVL";
 SELECT vlan_ID, vlan_vlan, vlan_name, device_ID from vlans 
+WHERE vlan_vlan >= $min_vlan
 ORDER by vlan_vlan
 EOVL
 
@@ -79,30 +80,30 @@ my %vlan_names = map { ( $_->{vlan_vlan} , $_  ) }
 	grep { $_->{device_ID} == $label_device } @vlans;
 # print '\%vlan_names = ', Dumper(\%vlan_names);
 
-print "-------- column headers ------------\n";
+# print "-------- column headers ------------\n";
 my @columns;
 for my $col (sort { $a <=> $b } keys %vlan_names) {
   push @columns, $vlan_names{$col} ;
 }
 # print '\@columns = ', Dumper(\@columns);
-for (@columns) {
-   printf "vlan tag: %4d - name: %s\n", $_->{vlan_vlan}, $_->{vlan_name};
-}
+#for (@columns) {
+#   printf "vlan tag: %4d - name: %s\n", $_->{vlan_vlan}, $_->{vlan_name};
+#}
 
 # row headers aka devices
 # print '\@devices = ', Dumper(\@devices);
 my %devices_by_name = map { ( $_->{'sysName'} , $_  ) } @devices;
 # print '\%devices_name = ', Dumper(\%devices_by_name);
-print "-------- row headers ------------\n";
+# print "-------- row headers ------------\n";
 my @rows;
 for my $row (sort keys %devices_by_name) {
   push @rows, $devices_by_name{$row} ;
 }
 # print '\@rows = ', Dumper(\@rows);
-for (@rows) {
-  printf "device id = %3d; IP = %14s; name = %s \n", 
-        $_->{device_id}, $_->{ip}, $_->{sysName};
-}
+# for (@rows) {
+#  printf "device id = %3d; IP = %14s; name = %s \n", 
+#        $_->{device_id}, $_->{ip}, $_->{sysName};
+# }
 
 # rehash port data
 # my $portmap->{device}->{vlan}= \@portlist
@@ -111,7 +112,7 @@ my %portmap = ();
 for my $r (@port_vlans) {
   push @{$portmap{$r->{device_id}}->{$r->{vlan}}}, $r;
 }
-print '\%portmap = ', Dumper(\%portmap);
+# print '\%portmap = ', Dumper(\%portmap);
 
 
 # build table
@@ -125,18 +126,21 @@ for my $r (@rows) {
     # push @row, sprintf " %s -> %s ", $r, $c;
     # ush @row, 
     my $ports = $portmap{$r->{device_id}}->{$c->{vlan_vlan}} ;
-    my $entry ='|';
-    my $i=3;
+    # my $entry ='|';
+    # my $i=2;
+    my @entries =();
     for my $p (@$ports) {
-      $entry .= $p->{port_id} . ',';
-      if (--$i <=0) {
-         $i=3;
-         $entry .="\n| ";
-      }
+      my $entry =  $ports_byID{ $p->{port_id} }->{'port_label'}  ;
+      $entry .= '-U' if $ports_byID{ $p->{port_id} }->{'ifVlan'} == $c->{vlan_vlan} ; 
+      push @entries, $entry;
+      # if (--$i <=0) {
+      #    $i=2;
+      #    $entry .="\n  ";
+      # }
       # print $entry;
     }
     # print "\n";
-    push @row, $entry  ;
+    push @row, join "\n ", @entries  ;
     # push @row, scalar (@$ports);
     # print Dumper (\@row);
 
