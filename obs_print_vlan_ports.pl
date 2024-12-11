@@ -122,16 +122,21 @@ for my $r (@rows) {
   push @row, $r->{device_id}, $r->{sysName}, $r->{ip};
   for my $c (@columns) {
     # push @row, sprintf " %4d -> %s ", $_->{vlan_vlan}, $_->{vlan_name};
-     # push @row, sprintf " %s -> %s ", $r, $c;
-     # push @row, 
-    my $ports = $portmap{$r->{device_id}}->{$c->{vlan}} ;
-    my $entry;
+    # push @row, sprintf " %s -> %s ", $r, $c;
+    # ush @row, 
+    my $ports = $portmap{$r->{device_id}}->{$c->{vlan_vlan}} ;
+    my $entry ='|';
     for my $p (@$ports) {
-      my $entry .= $p->{port_id} . '|';
+      $entry .= $p->{port_id} . ',';
+      print $entry;
     }
-    push @row,$entry;
+    print "\n";
+    push @row, $entry  ;
+    # push @row, scalar (@$ports);
+    # print Dumper (\@row);
 
   }
+  print Dumper (\@row);
   $tb->load([@row]);
 }
 
@@ -139,7 +144,7 @@ for my $r (@rows) {
 
 
 # print table
-# print $tb;
+print $tb;
 
 exit;
 #============ subs =========================================
