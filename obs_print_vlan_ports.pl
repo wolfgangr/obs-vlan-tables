@@ -11,7 +11,7 @@ use Data::Table;
 use DBI;
 use Text::Table; 
 
-my $debug = 5;
+my $debug = 3;
 my $label_device = 21;  # device_ID where the vlan-labels are authoritative
 my $min_vlan = 2;       # lowest vlan number to display
 
@@ -21,7 +21,7 @@ require './credentials.in';
 # my $dsn = "DBI:MariaDB:database=$database;host=$hostname";
 my $dsn = "DBI:mysql:database=$database;host=$hostname";
 my $dbh = DBI->connect($dsn, $user, $password);
-print "established database connection to $database @ $hostname\n";
+debug(2,  "established database connection to $database @ $hostname\n");
 #--------------------------------------------------------------------------
 
 # --- devices ---
@@ -31,10 +31,10 @@ FROM devices;
 EODV
 
 my @devices = retrieve_sql($dv_sql);
-print scalar @devices . " devices: rows found.\n";
+debug (3,  scalar @devices . " devices: rows found.\n");
 # print '\@devices = ', Dumper(\@devices);
 my %devices_byID = map { ( $_->{'device_id'} , $_  ) } @devices;
-# print '\%devices_byID = ', Dumper(\%devices_byID);
+debug(5,  '\%devices_byID = ' .  Dumper(\%devices_byID) );
 
 # --- port_vlans ---
 my $pv_sql = <<"EOPV";
@@ -45,7 +45,7 @@ ORDER BY device_id, vlan, port_id
 EOPV
 
 my @port_vlans = retrieve_sql($pv_sql);
-print scalar @port_vlans . " port_vlans: rows found.\n";
+debug (3,  scalar @port_vlans . " port_vlans: rows found.\n");
 # print '\@port_vlans = ', Dumper(\@port_vlans);
 # my %port_vlans_byID = map { ( $_->{'port_vlan_id'} , $_  ) } @port_vlans;
 # print '\%vlans_byID = ', Dumper(\%port_vlans_byID);
@@ -57,7 +57,7 @@ FROM ports
 EOPT
 
 my @ports= retrieve_sql($pt_sql);
-print scalar @ports . " ports: rows found.\n";
+debug (3, scalar @ports . " ports: rows found.\n");
 # print '\@ports = ', Dumper(\@ports);
 my %ports_byID = map { ( $_->{port_id} , $_  ) } @ports;
 # print '\%ports_byID = ', Dumper(\%ports_byID);
@@ -70,7 +70,7 @@ ORDER by vlan_vlan
 EOVL
 
 my @vlans = retrieve_sql($vl_sql);
-print scalar @vlans . " vlans: rows found.\n";
+debug (3, scalar @vlans . " vlans: rows found.\n");
 # print '\@vlans = ' , Dumper(\@vlans);
 my %vlans_byID = map { ( $_->{vlan_ID} , $_  ) } @vlans;
 # print '\%vlans_byID = ', Dumper(\%vlans_byID);
@@ -118,16 +118,16 @@ for my $r (@port_vlans) {
 
 # build table
 # my $tb = Text::Table->new('' , '', 'vlan-ID ->' ,  map { '| ' . $_->{vlan_vlan} } @columns);
-my @header1 = ('device' , 'name', 'IP' ,  map { '| ' . $_->{vlan_vlan} } @columns);
+my @header1 = ('device' , 'name', 'IP' ,  map {  $_->{vlan_vlan} } @columns);
 # $tb->load(['device', 'name', 'IP' ,  map { '| ' . $_->{vlan_name} } @columns]);
-my @header2 = ('', '', '' ,  map { '| ' . $_->{vlan_name} } @columns);
+my @header2 = ('', '', '' ,  map {  $_->{vlan_name} } @columns);
 # my @headers = ( "\ndevice" , "\nname", "vlan-ID ->\nIP" );
 # push @headers, map {  
 #           $_->{vlan_vlan} . "\n" . $_->{vlan_name}  
 #    }  @columns; 
 
 my @body; 
-push @body , \@header2;
+# push @body , \@header2;
 for my $r (@rows) {
   my @row;
   push @row, $r->{device_id}, $r->{sysName}, $r->{ip};
@@ -139,17 +139,32 @@ for my $r (@rows) {
       $entry .= '-U' if $ports_byID{ $p->{port_id} }->{'ifVlan'} == $c->{vlan_vlan} ; 
       push @entries, $entry;
     }
-    push @row, join "|", @entries  ;
+    # push @row, join "|", @entries  ;
+    push @row, join "\n ", @entries  ;
   }
   # $tb->load([@row]);
   push  @body, \@row ;
 }
 
-my $table = Data::Table->new(\@body, [ @header1 ] , 0);
-print $table->csv;
-print $table->html;
-# print table
-# print $tb;
+if (0) {       # ----  Data::Table output
+  # ----  Data::Table output
+  unshift @body, \@header2;
+  my $table = Data::Table->new(\@body, \@header1  , 0);
+  print $table->csv;
+  # print $table->html;
+
+} else {       # ----- Text::Table output
+   
+  my @tt_header = (\'|') ;
+  for my $i ( 0 .. $#header1) {
+    push @tt_header , $header1[$i]  . "\n" . $header2[$i];
+    push @tt_header , \'|';
+  }
+  debug (5, @tt_header . "\n") ;
+  my $tb = Text::Table->new( @tt_header );
+  $tb->load( @body);
+  print $tb;
+}
 
 exit;
 #============ subs =========================================
@@ -171,7 +186,8 @@ sub retrieve_sql {
 
 sub debug {
   my ($l, $msg) = @_;
-  print STDERR 'DEBUG: ', $msg if $l <= $debug;
+  return if $l > $debug;
+  print STDERR 'DEBUG: ', $msg ;
 }
 
 # http://stackoverflow.com/questions/7651/ddg#7657
