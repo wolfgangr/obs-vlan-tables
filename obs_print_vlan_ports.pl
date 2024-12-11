@@ -115,8 +115,8 @@ print '\%portmap = ', Dumper(\%portmap);
 
 
 # build table
-my $tb = Text::Table->new('' , '', 'vlan-ID ->' ,  map { $_->{vlan_vlan} } @columns);
-$tb->load(['device', 'name', 'IP' ,  map { $_->{vlan_name} } @columns]);
+my $tb = Text::Table->new('' , '', 'vlan-ID ->' ,  map { '| ' . $_->{vlan_vlan} } @columns);
+$tb->load(['device', 'name', 'IP' ,  map { '| ' . $_->{vlan_name} } @columns]);
 for my $r (@rows) {
   my @row;
   push @row, $r->{device_id}, $r->{sysName}, $r->{ip};
@@ -126,17 +126,22 @@ for my $r (@rows) {
     # ush @row, 
     my $ports = $portmap{$r->{device_id}}->{$c->{vlan_vlan}} ;
     my $entry ='|';
+    my $i=3;
     for my $p (@$ports) {
       $entry .= $p->{port_id} . ',';
-      print $entry;
+      if (--$i <=0) {
+         $i=3;
+         $entry .="\n| ";
+      }
+      # print $entry;
     }
-    print "\n";
+    # print "\n";
     push @row, $entry  ;
     # push @row, scalar (@$ports);
     # print Dumper (\@row);
 
   }
-  print Dumper (\@row);
+  # print Dumper (\@row);
   $tb->load([@row]);
 }
 
@@ -145,6 +150,9 @@ for my $r (@rows) {
 
 # print table
 print $tb;
+# print $tb->title();
+# print $tb->rule();
+# print $tb->body();
 
 exit;
 #============ subs =========================================
