@@ -118,13 +118,16 @@ for my $r (@port_vlans) {
 
 # build table
 # my $tb = Text::Table->new('' , '', 'vlan-ID ->' ,  map { '| ' . $_->{vlan_vlan} } @columns);
+my @header1 = ('device' , 'name', 'IP' ,  map { '| ' . $_->{vlan_vlan} } @columns);
 # $tb->load(['device', 'name', 'IP' ,  map { '| ' . $_->{vlan_name} } @columns]);
-my @headers = ( "\ndevice" , "\nname", "vlan-ID ->\nIP" );
-push @headers, map {  
-          $_->{vlan_vlan} . "\n" . $_->{vlan_name}  
-    }  @columns; 
+my @header2 = ('', '', '' ,  map { '| ' . $_->{vlan_name} } @columns);
+# my @headers = ( "\ndevice" , "\nname", "vlan-ID ->\nIP" );
+# push @headers, map {  
+#           $_->{vlan_vlan} . "\n" . $_->{vlan_name}  
+#    }  @columns; 
 
 my @body; 
+push @body , \@header2;
 for my $r (@rows) {
   my @row;
   push @row, $r->{device_id}, $r->{sysName}, $r->{ip};
@@ -142,7 +145,7 @@ for my $r (@rows) {
   push  @body, \@row ;
 }
 
-my $table = Data::Table->new(\@body, \@headers, 0);
+my $table = Data::Table->new(\@body, [ @header1 ] , 0);
 print $table->csv;
 
 # print table
