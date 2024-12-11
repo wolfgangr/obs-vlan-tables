@@ -7,6 +7,7 @@
 use warnings;
 use strict;
 use Data::Dumper;   
+use Data::Table;
 use DBI;
 use Text::Table; 
 
@@ -116,47 +117,36 @@ for my $r (@port_vlans) {
 
 
 # build table
-my $tb = Text::Table->new('' , '', 'vlan-ID ->' ,  map { '| ' . $_->{vlan_vlan} } @columns);
-$tb->load(['device', 'name', 'IP' ,  map { '| ' . $_->{vlan_name} } @columns]);
+# my $tb = Text::Table->new('' , '', 'vlan-ID ->' ,  map { '| ' . $_->{vlan_vlan} } @columns);
+# $tb->load(['device', 'name', 'IP' ,  map { '| ' . $_->{vlan_name} } @columns]);
+my @headers = ( "\ndevice" , "\nname", "vlan-ID ->\nIP" );
+push @headers, map {  
+          $_->{vlan_vlan} . "\n" . $_->{vlan_name}  
+    }  @columns; 
+
+my @body; 
 for my $r (@rows) {
   my @row;
   push @row, $r->{device_id}, $r->{sysName}, $r->{ip};
   for my $c (@columns) {
-    # push @row, sprintf " %4d -> %s ", $_->{vlan_vlan}, $_->{vlan_name};
-    # push @row, sprintf " %s -> %s ", $r, $c;
-    # ush @row, 
     my $ports = $portmap{$r->{device_id}}->{$c->{vlan_vlan}} ;
-    # my $entry ='|';
-    # my $i=2;
     my @entries =();
     for my $p (@$ports) {
       my $entry =  $ports_byID{ $p->{port_id} }->{'port_label'}  ;
       $entry .= '-U' if $ports_byID{ $p->{port_id} }->{'ifVlan'} == $c->{vlan_vlan} ; 
       push @entries, $entry;
-      # if (--$i <=0) {
-      #    $i=2;
-      #    $entry .="\n  ";
-      # }
-      # print $entry;
     }
-    # print "\n";
-    push @row, join "\n ", @entries  ;
-    # push @row, scalar (@$ports);
-    # print Dumper (\@row);
-
+    push @row, join "|", @entries  ;
   }
-  # print Dumper (\@row);
-  $tb->load([@row]);
+  # $tb->load([@row]);
+  push  @body, \@row ;
 }
 
-
-
+my $table = Data::Table->new(\@body, \@headers, 0);
+print $table->csv;
 
 # print table
-print $tb;
-# print $tb->title();
-# print $tb->rule();
-# print $tb->body();
+# print $tb;
 
 exit;
 #============ subs =========================================
