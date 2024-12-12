@@ -98,7 +98,38 @@ my @vlans = retrieve_sql($vl_sql);
 debug (3, scalar @vlans . " vlans: rows found.\n");
 # print '\@vlans = ' , Dumper(\@vlans);
 my %vlans_byID = map { ( $_->{vlan_ID} , $_  ) } @vlans;
-# print '\%vlans_byID = ', Dumper(\%vlans_byID);
+debug(5,  '\%vlans_byID = ', Dumper(\%vlans_byID)) ;
+
+
+# --- vlans_fdb ---
+my $vlfdb_sql = <<"EOVLFDB";
+SELECT * from vlans_fdb 
+EOVLFDB
+
+my @vlan_fdb = retrieve_sql($vlfdb_sql);
+debug (3, scalar @vlan_fdb . " vlans: rows found.\n");
+debug(5,  '\@vlan_fdb = ' , Dumper(\@vlan_fdb));
+# my %vlans_byID = map { ( $_->{vlan_ID} , $_  ) } @vlans;
+# debug(5,  '\%vlans_byID = ', Dumper(\%vlans_byID)) ;
+
+
+# --- ip_mac ---
+my $im_sql = <<"EOIPMAC";
+SELECT	mac_id,	device_id, mac_address,	ip_address, ip_version
+FROM ip_mac
+EOIPMAC
+
+my @ip_mac = retrieve_sql($im_sql);
+debug (3, scalar @vlans . " vlans: rows found.\n");
+debug(5,  '\@ip_mac = ' , Dumper(\@ip_mac));
+my %IP_by_mac = map { ( $_->{mac_address} , $_  ) } @ip_mac;
+debug(5,  '\%IP_by_mac = ', Dumper(\%IP_by_mac)) ;
+
+
+
+
+
+
 
 #============== end of loading
 
