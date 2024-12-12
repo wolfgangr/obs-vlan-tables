@@ -133,10 +133,8 @@ debug(5,  '\%IP_by_mac = ', Dumper(\%IP_by_mac)) ;
 
 #============== end of loading
 
-# if ($outmode eq 'dump') { 
-if (1) {
-  # print Data::Dumper->Dump([$foo, $bar], [qw(foo *ary)]);
-  # print Data::Dumper->Dump ([\%vlans_byID] );
+if ($outmode eq 'dump') { 
+# if (0) {
   print Data::Dumper->Dump (
 	[   \@vlans,  \@devices, \@vlan_fdb, \@ip_mac  ], 
 	[qw (@vlans    @devices   @vlan_fdb   @ip_mac    )]);
@@ -145,26 +143,25 @@ if (1) {
 
 # ================== reorganize data ==========================
 # column headers aka vlans
-my $re = qr/$grep_vlan/;
-my %vlan_names = 
-	map { ( $_->{vlan_vlan} , $_ ) } 
-	grep { $_->{vlan_vlan} =~ /$re/ or $_->{vlan_name} =~ /$re/ }
-	grep { $_->{device_ID} == $label_device } 
-	@vlans;
-# print '\%vlan_names = ', Dumper(\%vlan_names);
+#	my $re = qr/$grep_vlan/;
+#	my %vlan_names = 
+#		map { ( $_->{vlan_vlan} , $_ ) } 
+#		grep { $_->{vlan_vlan} =~ /$re/ or $_->{vlan_name} =~ /$re/ }
+#		grep { $_->{device_ID} == $label_device } 
+#		@vlans;
+#	# print '\%vlan_names = ', Dumper(\%vlan_names);
+#
+#	# print "-------- column headers ------------\n";
+#	my @columns;
+#	for my $col (sort { $a <=> $b } keys %vlan_names) {
+#	  push @columns, $vlan_names{$col} ;
+#	}
+#	# print '\@columns = ', Dumper(\@columns);
+#	#for (@columns) {
+#	#   printf "vlan tag: %4d - name: %s\n", $_->{vlan_vlan}, $_->{vlan_name};
+#	#}
 
-# print "-------- column headers ------------\n";
-my @columns;
-for my $col (sort { $a <=> $b } keys %vlan_names) {
-  push @columns, $vlan_names{$col} ;
-}
-# print '\@columns = ', Dumper(\@columns);
-#for (@columns) {
-#   printf "vlan tag: %4d - name: %s\n", $_->{vlan_vlan}, $_->{vlan_name};
-#}
-
-# row headers aka devices
-# print '\@devices = ', Dumper(\@devices);
+# devices are column headers for fdb listing
 my $re2 = qr/$grep_device/;
 my %devices_by_name = 
 	map { ( $_->{'sysName'} , $_  ) } 
@@ -172,15 +169,43 @@ my %devices_by_name =
 	@devices;
 # print '\%devices_name = ', Dumper(\%devices_by_name);
 # print "-------- row headers ------------\n";
-my @rows;
-for my $row (sort keys %devices_by_name) {
-  push @rows, $devices_by_name{$row} ;
+my @columns;
+for my $c (sort keys %devices_by_name) {
+  push @columns, $devices_by_name{$c} ;
 }
-# print '\@rows = ', Dumper(\@rows);
+
+debug (3, scalar @columns . " device columns left after filtering\n");
+debug (4, 'filtered devices: ' . (join ', ' , map { $_->{sysName} } @columns) . "\n");
+debug(5, '\@columns = '. Dumper(\@columns));
+
+# collect row list
+# known devices
+# %mac_rows{$mac}->{'device'}->\%device_record
+# my %mac_rows = map { ( $_->{mac_address} , {device => $_} ) } @ip_mac;
+my %dev_macs =  map { ( $_->{mac_address} ,  $_ ) } @ip_mac;
+debug(0, '\%dev_macs = '. Dumper(\%dev_macs));
+
+
+# %mac_rows = (%mac_rows, 
+#	map {$_->{mac_address}}  @vlan_fdb );
+# for my $f (@vlan_fdb) { $mac_rows{$f->{mac_address}}->{fdb}++ ; }
+
+# debug(5, '\%mac_rows = '. Dumper(\%mac_rows));
+# debug (3, (scalar keys %mac_rows) . " mac addresses in output row list\n");
+
+# for my $m 
+
 # for (@rows) {
+
 #  printf "device id = %3d; IP = %14s; name = %s \n", 
 #        $_->{device_id}, $_->{ip}, $_->{sysName};
 # }
+
+die "==== cutting edge =================~~~~~~~~~~~~~~~~~~~~~~~~~--------------------------";
+
+my @rows;
+
+
 
 # rehash port data
 # my $portmap->{device}->{vlan}= \@portlist
