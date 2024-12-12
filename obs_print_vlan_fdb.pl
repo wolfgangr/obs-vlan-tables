@@ -109,8 +109,6 @@ EOVLFDB
 my @vlan_fdb = retrieve_sql($vlfdb_sql);
 debug (3, scalar @vlan_fdb . " vlan_fdb: rows found.\n");
 debug(5,  '\@vlan_fdb = ' , Dumper(\@vlan_fdb));
-# my %vlans_byID = map { ( $_->{vlan_ID} , $_  ) } @vlans;
-# debug(5,  '\%vlans_byID = ', Dumper(\%vlans_byID)) ;
 
 
 # --- ip_mac ---
@@ -178,13 +176,21 @@ debug (3, scalar @columns . " device columns left after filtering\n");
 debug (4, 'filtered devices: ' . (join ', ' , map { $_->{sysName} } @columns) . "\n");
 debug(5, '\@columns = '. Dumper(\@columns));
 
-# collect row list
-# known devices
-# %mac_rows{$mac}->{'device'}->\%device_record
-# my %mac_rows = map { ( $_->{mac_address} , {device => $_} ) } @ip_mac;
-my %dev_macs =  map { ( $_->{mac_address} ,  $_ ) } @ip_mac;
-debug(0, '\%dev_macs = '. Dumper(\%dev_macs));
+# my %row_macs = map { }
+# 	grep {  $_->{vlan_vlan} =~ /$re/ } @vlan_fdb;
 
+my %row_macs = ();
+my $re = qr/$grep_vlan/;
+for my $f (@vlan_fdb) {
+  my $myvl = $vlans_byID{$f->{vlan_id}};
+  # next unless defined $myvl->{vlan_vlan} ;
+  next unless  $myvl->{vlan_vlan} =~ /$re/ or $myvl->{vlan_name} =~ /$re/;
+  
+  $row_macs{$f->{mac_address}}->{fdb}->{$f->{device_id}}->{$f->{fdb_id}} = $f;
+} 
+
+debug(0, '\%row_macs = '. Dumper(\%row_macs));
+debug (3, (scalar keys %row_macs) . " mac addresses in output row list\n");
 
 # %mac_rows = (%mac_rows, 
 #	map {$_->{mac_address}}  @vlan_fdb );
