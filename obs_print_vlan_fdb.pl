@@ -87,32 +87,6 @@ debug (3,  scalar @devices . " devices: rows found.\n");
 my %devices_byID = map { ( $_->{'device_id'} , $_  ) } @devices;
 debug(5,  '\%devices_byID = ' .  Dumper(\%devices_byID) );
 
-# --- port_vlans ---
-my $pv_sql = <<"EOPV";
-SELECT port_vlan_id, vlan, device_id, port_id 
-FROM ports_vlans 
-WHERE vlan >= $min_vlan
-ORDER BY device_id, vlan, port_id
-EOPV
-
-my @port_vlans = retrieve_sql($pv_sql);
-debug (3,  scalar @port_vlans . " port_vlans: rows found.\n");
-# print '\@port_vlans = ', Dumper(\@port_vlans);
-# my %port_vlans_byID = map { ( $_->{'port_vlan_id'} , $_  ) } @port_vlans;
-# print '\%vlans_byID = ', Dumper(\%port_vlans_byID);
-
-# --- ports ---
-my $pt_sql = <<"EOPT";
-SELECT port_id,  port_label , ifIndex, ifType, ifPhysAddress, ifVlan, ifTrunk   
-FROM ports 
-EOPT
-
-my @ports= retrieve_sql($pt_sql);
-debug (3, scalar @ports . " ports: rows found.\n");
-# print '\@ports = ', Dumper(\@ports);
-my %ports_byID = map { ( $_->{port_id} , $_  ) } @ports;
-# print '\%ports_byID = ', Dumper(\%ports_byID);
-
 # --- vlans ---
 my $vl_sql = <<"EOVL";
 SELECT vlan_ID, vlan_vlan, vlan_name, device_ID from vlans 
@@ -126,12 +100,15 @@ debug (3, scalar @vlans . " vlans: rows found.\n");
 my %vlans_byID = map { ( $_->{vlan_ID} , $_  ) } @vlans;
 # print '\%vlans_byID = ', Dumper(\%vlans_byID);
 
-if ($outmode eq 'dump') { 
+#============== end of loading
+
+# if ($outmode eq 'dump') { 
+if (1) {
   # print Data::Dumper->Dump([$foo, $bar], [qw(foo *ary)]);
   # print Data::Dumper->Dump ([\%vlans_byID] );
   print Data::Dumper->Dump (
-	[   \@vlans, \@ports, \@port_vlans, \@devices  ], 
-	[qw (@vlans  @ports    @port_vlans   @devices)]);
+	[   \@vlans,  \@devices  ], 
+	[qw (@vlans    @devices)]);
   exit;
 }
 
@@ -178,9 +155,9 @@ for my $row (sort keys %devices_by_name) {
 # my $portmap->{device}->{vlan}= \@portlist
 # print '\@port_vlans = ', Dumper(\@port_vlans);
 my %portmap = ();
-for my $r (@port_vlans) {
-  push @{$portmap{$r->{device_id}}->{$r->{vlan}}}, $r;
-}
+### for my $r (@port_vlans) {
+###  push @{$portmap{$r->{device_id}}->{$r->{vlan}}}, $r;
+### }
 # print '\%portmap = ', Dumper(\%portmap);
 
 
@@ -203,9 +180,9 @@ for my $r (@rows) {
     my $ports = $portmap{$r->{device_id}}->{$c->{vlan_vlan}} ;
     my @entries =();
     for my $p (@$ports) {
-      my $entry =  $ports_byID{ $p->{port_id} }->{'port_label'}  ;
-      $entry .= '-U' if $ports_byID{ $p->{port_id} }->{'ifVlan'} == $c->{vlan_vlan} ; 
-      push @entries, $entry;
+    ###  my $entry =  $ports_byID{ $p->{port_id} }->{'port_label'}  ;
+    ###  $entry .= '-U' if $ports_byID{ $p->{port_id} }->{'ifVlan'} == $c->{vlan_vlan} ; 
+    ###  push @entries, $entry;
     }
     push @row, join $sep, @entries  ;
   }
