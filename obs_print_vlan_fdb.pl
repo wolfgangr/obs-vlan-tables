@@ -13,7 +13,7 @@ use Text::Table;
 use Getopt::Long;
 
 # default settings, may be overriden by cmd line options
-my $debug = 3;
+my $debug = 0;
 my $label_device = 21;  # device_ID where the vlan-labels are authoritative
 my $min_vlan = 2;       # lowest vlan number to display
 my $credential_file = './credentials.in';
@@ -22,6 +22,8 @@ my %options =();
 GetOptions (  \%options,
 	   "vlan|v=s",	# <vlan   grep pattern>      - default ''
 	 "device|i=s",	# <device grep pattern>      - default ''
+        "deleted|x",	# 	don't exclude deleted fdb entries
+
 	  "minvl|m=i",	# <min vlan ID>              - default $min_vlan
   	 "labeld|l=i",  # <device ID> 	- default $label_device
   	   "user|u=s",  # <./file>  - default '$credential_file'
@@ -160,6 +162,8 @@ debug(5, '\@columns = '. Dumper(\@columns));
 
 my %row_macs = ();
 for my $f (@vlan_fdb) {
+  next if ((not $options{deleted}) and $f->{deleted});
+
   my $myvl   = $vlans_by_vlan{$f->{vlan_id}};
   my $mysdev = $devices_byID{$f->{device_id}};
 
@@ -180,7 +184,7 @@ for my $f (@vlan_fdb) {
 
   $row_macs{$f->{mac_address}}->{fdb}->{$f->{device_id}}->{$f->{fdb_id}} = $f;
 } 
-debug(0, '\%row_macs = '. Dumper(\%row_macs));
+debug(5, '\%row_macs = '. Dumper(\%row_macs));
 debug (3, (scalar keys %row_macs) . " mac addresses in output row list\n");
 
 my @rows = sort keys %row_macs;
@@ -235,16 +239,14 @@ for my $r (@rows) {
     #   $row_macs{$f->{mac_address}}->{fdb}->{$f->{device_id}}->{$f->{fdb_id}} = $f;
     my $rc_fdb = $row_macs{$r}->{fdb}->{$c->{device_id}};
     # print Dumper($c, $r,  $rc_fdb);
-    # push @row, join ':', #   ( $cfspec->{is} // ':') ,
     my @entries =  sort  { $a <=> $b } 
 	map { $rc_fdb->{$_}->{vlan_id}  } keys %$rc_fdb;
-    # my $cell = join ':', @entries  ;
-    my $cell = shift @entries;
+    my $cell = shift @entries;  # simple case - fine for most cells
+
     if (scalar @entries) {   	# i.e. more than one entry
       my $icnt = 1;
       my $ccnt = length($cell);
       while (my $ne = shift @entries) {
-        ## if (($icnt >=  ($cfspec->{ipl}//'')) or ( $ccnt >=  ($cfspec->{cpl}//''))) {
         if ( (defined $cfspec->{ipl} and $icnt >=  $cfspec->{ipl} ) or
              (defined $cfspec->{cpl} and $ccnt >=  $cfspec->{cpl} ) )   {
            # new line
@@ -285,10 +287,7 @@ if ($outmode eq 'html' or $outmode eq 'csv') {       # ----  Data::Table output
   my $tb = Text::Table->new( @tt_header );
   $tb->load( @body);
   print $tb;
-# } elsif ($outmode eq 'dump') {      # ------ Data::Dumper output
-#   die "TBD: Data::Dumper output";
 } else { die "\$outmode $outmode  not implemented" ; }
-
 
 exit;
 #============ subs =========================================
@@ -324,10 +323,14 @@ sub usage {
 # print "$0:\n";
         print  <<"EOU";
 $0
-retrieve port assignemnt to vlans per device 
-from observium database
+retrieve 802.1Q vlan filter database entries  
+	from observium database
+
   -v|vlan    <vlan   grep pattern>      - default ''
   -i|device  <device grep pattern>      - default ''
+  -x|deleted 				- default off
+	don't exclude deleted fdb entries
+
   -m|minvl   <min vlan ID>		- default $min_vlan
   -l|labeld  <device ID>                - default $label_device
 	device from which vlan label names are used
