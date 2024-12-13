@@ -1,0 +1,22 @@
+./obs_print_vlan_ports.pl
+retrieve port assignemnt to vlans per device 
+from observium database
+  -v|vlan    <vlan   grep pattern>      - default ''
+  -i|device  <device grep pattern>      - default ''
+  -m|minvl   <min vlan ID>		- default 2
+  -l|labeld  <device ID>                - default 21
+	device from which vlan label names are used
+  -u|--user <./file>     	        - default './credentials.in'
+	database credential file (perl syntax)
+
+table output format
+  -c|csv
+  -t|html
+  -y|pretty
+  -p|dump
+
+Supplementary commands:
+  -d|--debug <level>   - default: 3
+  -h|--help
+        show this message
+

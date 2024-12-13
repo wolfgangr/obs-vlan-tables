@@ -1,0 +1,26 @@
+./obs_print_vlan_fdb.pl
+retrieve 802.1Q vlan filter database entries  
+	from observium database
+
+  -v|vlan    <vlan   grep pattern>      - default ''
+  -i|device  <device grep pattern>      - default ''
+  -x|deleted 				- default off
+	don't exclude deleted fdb entries
+
+  -m|minvl   <min vlan ID>		- default 2
+  -l|labeld  <device ID>                - default 21
+	device from which vlan label names are used
+  -u|--user <./file>     	        - default './credentials.in'
+	database credential file (perl syntax)
+
+table output format
+  -c|csv
+  -t|html
+  -y|pretty
+  -p|dump
+
+Supplementary commands:
+  -d|--debug <level>   - default: 0
+  -h|--help
+        show this message
+
