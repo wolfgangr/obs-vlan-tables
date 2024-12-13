@@ -110,7 +110,7 @@ EOVLFDB
 
 my @vlan_fdb = retrieve_sql($vlfdb_sql);
 debug (3, scalar @vlan_fdb . " vlan_fdb: rows found.\n");
-debug(5,  '\@vlan_fdb = ' , Dumper(\@vlan_fdb));
+debug(5,  '\@vlan_fdb = ' . Dumper(\@vlan_fdb));
 
 
 # --- ip_mac ---
@@ -123,7 +123,7 @@ my @ip_mac = retrieve_sql($im_sql);
 debug (3, scalar @ip_mac . " ip_mac: rows found.\n");
 debug(5,  '\@ip_mac = ' , Dumper(\@ip_mac));
 my %IP_by_mac = map { ( $_->{mac_address} , $_  ) } @ip_mac;
-debug(5,  '\%IP_by_mac = ', Dumper(\%IP_by_mac)) ;
+debug(0,  '\%IP_by_mac = ' . Dumper(\%IP_by_mac)) ;
 
 
 
@@ -220,7 +220,7 @@ debug(5, '\%row_macs = '. Dumper(\%row_macs));
 debug (3, (scalar keys %row_macs) . " mac addresses in output row list\n");
 
 my @rows = sort keys %row_macs;
-debug (0, (join ';',  @rows) . "\n");
+# debug (0, (join ';',  @rows) . "\n");
 
 my @header1 = ('mac' , 'device', 'IP' ,  map {  $_->{sysName} } @columns);
 my @header2 = ('', '', '' ,  map {  $_->{ip} } @columns);
@@ -244,6 +244,19 @@ my @body;
 for my $r (@rows) {
   my @row;
   push @row, $r;
+
+  my $dtid ;
+  if ( my $d_t = $IP_by_mac{$r} ) {
+    # print " kilroy $d_t ";
+    $dtid = $devices_byID{ $d_t->{device_id}   };
+  }
+  if ($dtid ) {
+    push @row, substr( $dtid->{sysName} ,0,15) ;
+    push @row, $dtid->{ip};
+  } else {
+    push @row, qw(? -);
+  }
+
   for my $c (@columns) {
     my $ports ;#  = $portmap{$r->{device_id}}->{$c->{vlan_vlan}} ;
     my @entries =();
