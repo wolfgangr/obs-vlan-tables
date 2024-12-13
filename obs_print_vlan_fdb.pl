@@ -230,18 +230,8 @@ my @header2 = ('', '', '' ,  map {  $_->{ip} } @columns);
 
 
 # rehash port data
-# my $portmap->{device}->{vlan}= \@portlist
-# print '\@port_vlans = ', Dumper(\@port_vlans);
-my %portmap = ();
-### for my $r (@port_vlans) {
-###  push @{$portmap{$r->{device_id}}->{$r->{vlan}}}, $r;
-### }
-# print '\%portmap = ', Dumper(\%portmap);
+# my %portmap = ();
 
-
-# build table
-# my @header1 = ('device' , 'name', 'IP' ,  map {  $_->{vlan_vlan} } @columns);
-# my @header2 = ('', '', '' ,  map {  $_->{vlan_name} } @columns);
 
 my $sep =  "\n ";
 if ($outmode eq 'csv') {
@@ -253,7 +243,6 @@ if ($outmode eq 'csv') {
 my @body; 
 for my $r (@rows) {
   my @row;
-  # push @row, $r->{device_id}, $r->{sysName}, $r->{ip};
   push @row, $r;
   for my $c (@columns) {
     my $ports ;#  = $portmap{$r->{device_id}}->{$c->{vlan_vlan}} ;
