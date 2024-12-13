@@ -125,12 +125,6 @@ debug(5,  '\@ip_mac = ' , Dumper(\@ip_mac));
 my %IP_by_mac = map { ( $_->{mac_address} , $_  ) } @ip_mac;
 debug(5,  '\%IP_by_mac = ' . Dumper(\%IP_by_mac)) ;
 
-
-
-
-
-
-
 #============== end of loading
 
 if ($outmode eq 'dump') { 
@@ -141,25 +135,7 @@ if ($outmode eq 'dump') {
   exit;
 }
 
-# ================== reorganize data ==========================
-# column headers aka vlans
-#	my $re = qr/$grep_vlan/;
-#	my %vlan_names = 
-#		map { ( $_->{vlan_vlan} , $_ ) } 
-#		grep { $_->{vlan_vlan} =~ /$re/ or $_->{vlan_name} =~ /$re/ }
-#		grep { $_->{device_ID} == $label_device } 
-#		@vlans;
-#	# print '\%vlan_names = ', Dumper(\%vlan_names);
-#
-#	# print "-------- column headers ------------\n";
-#	my @columns;
-#	for my $col (sort { $a <=> $b } keys %vlan_names) {
-#	  push @columns, $vlan_names{$col} ;
-#	}
-#	# print '\@columns = ', Dumper(\@columns);
-#	#for (@columns) {
-#	#   printf "vlan tag: %4d - name: %s\n", $_->{vlan_vlan}, $_->{vlan_name};
-#	#}
+# ================== reindex data ==========================
 
 # devices are column headers for fdb listing
 my $red = qr/$grep_device/;
@@ -181,18 +157,11 @@ debug (3, scalar @columns . " device columns left after filtering\n");
 debug (4, 'filtered devices: ' . (join ', ' , map { $_->{sysName} } @columns) . "\n");
 debug(5, '\@columns = '. Dumper(\@columns));
 
-# my %row_macs = map { }
-# 	grep {  $_->{vlan_vlan} =~ /$re/ } @vlan_fdb;
 
 my %row_macs = ();
 for my $f (@vlan_fdb) {
   my $myvl   = $vlans_by_vlan{$f->{vlan_id}};
   my $mysdev = $devices_byID{$f->{device_id}};
-  # printf STDERR "| %s | %s | %s |-| %s | %s | %s | \n ", 
-  # 	$myvl, $myvl->{vlan_vlan}, $myvl->{vlan_name} ,
-  #	$mysdev, $f->{device_id}, $mysdev->{sysName} ;
-
-  # next unless defined $myvl->{vlan_vlan} ;
 
   if ($options{vlan}) {
     next unless defined $myvl;
@@ -201,16 +170,11 @@ for my $f (@vlan_fdb) {
 
   }
   if ( $rev  and defined $myvl) { # and defined $myvl  ) {
-  # if (0) {
-    # next unless defined $myvl;
-    # next unless defined $myvl->{vlan_vlan};
-    # next unless defined $myvl->{vlan_name};
     next unless  ( $myvl->{vlan_vlan} =~ /$rev/ or $myvl->{vlan_name} =~ /$rev/ ) ;
   }
 
   # my $mysdev = $devices_byID{$f->{device_id}};
   if ( $red ) {   # and defined $mysdev ) {
-  # if (0) { 
     next  unless ( $f->{device_id}  =~ /$red/ or  $mysdev->{sysName} =~ /$red/ ) ;
   }
 
@@ -225,15 +189,7 @@ my @rows = sort keys %row_macs;
 my @header1 = ('mac' , 'device', 'IP' ,  map {  $_->{sysName} } @columns);
 my @header2 = ('', '', '' ,  map {  $_->{ip} } @columns);
 
-# die "==== cutting edge =================~~~~~~~~~~~~~~~~~~~~~~~~~--------------------------";
-
-
-
-# rehash port data
-# my %portmap = ();
-
-
-my $sep =  "\n ";
+my $sep = ', '; #   "\n ";
 if ($outmode eq 'csv') {
   $sep = '|';
 } elsif ($outmode eq 'html') {
@@ -247,7 +203,6 @@ for my $r (@rows) {
 
   my $dtid ;
   if ( my $d_t = $IP_by_mac{$r} ) {
-    # print " kilroy $d_t ";
     $dtid = $devices_byID{ $d_t->{device_id}   };
   }
   if ($dtid ) {
@@ -257,24 +212,15 @@ for my $r (@rows) {
     push @row, qw(? -);
   }
 
-  # my $row_fdb = 
   for my $c (@columns) {
     #   $row_macs{$f->{mac_address}}->{fdb}->{$f->{device_id}}->{$f->{fdb_id}} = $f;
     my $rc_fdb = $row_macs{$r}->{fdb}->{$c->{device_id}};
     # print Dumper($c, $r,  $rc_fdb);
-    # die "in body \n";
-    #   $row_macs{$f->{mac_address}}->{fdb}->{$f->{device_id}}->{$f->{fdb_id}} = $f;
- 
-    # my $ports ;#  = $portmap{$r->{device_id}}->{$c->{vlan_vlan}} ;
-    my @entries = sort  { $a <=> $b } 
+    push @row, join $sep, 
+    	sort  { $a <=> $b } 
 	map { $rc_fdb->{$_}->{vlan_id}  }
 	keys %$rc_fdb;
-    # for my $p (@$ports) {
-    ###  my $entry =  $ports_byID{ $p->{port_id} }->{'port_label'}  ;
-    ###  $entry .= '-U' if $ports_byID{ $p->{port_id} }->{'ifVlan'} == $c->{vlan_vlan} ; 
-    ###  push @entries, $entry;
-    # }
-    push @row, join $sep, @entries  ;
+    # push @row, join $sep, @entries  ;
   }
   push  @body, \@row ;
 }
