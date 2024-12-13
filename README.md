@@ -39,4 +39,18 @@ Expect nothing but the worst.
 Before any test, carefully scrutinize the source for undesired side effects.  
 It's always good practise to test with minimum access rights and a read-only user to observium database.
 
+## UNLICENSE
+This work is covered by UNLICENSE:
+
+> This is free and unencumbered software released into the public domain.
+
+> Anyone is free to copy, modify, publish, use, compile, sell, or
+> distribute this software, either in source code form or as a compiled
+> binary, for any purpose, commercial or non-commercial, and by any means.
+
+For further details, see LICENSE and https://unlicense.org/
+
+
+
+
 
