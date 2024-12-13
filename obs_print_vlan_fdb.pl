@@ -123,7 +123,7 @@ my @ip_mac = retrieve_sql($im_sql);
 debug (3, scalar @ip_mac . " ip_mac: rows found.\n");
 debug(5,  '\@ip_mac = ' , Dumper(\@ip_mac));
 my %IP_by_mac = map { ( $_->{mac_address} , $_  ) } @ip_mac;
-debug(0,  '\%IP_by_mac = ' . Dumper(\%IP_by_mac)) ;
+debug(5,  '\%IP_by_mac = ' . Dumper(\%IP_by_mac)) ;
 
 
 
@@ -216,7 +216,7 @@ for my $f (@vlan_fdb) {
 
   $row_macs{$f->{mac_address}}->{fdb}->{$f->{device_id}}->{$f->{fdb_id}} = $f;
 } 
-debug(5, '\%row_macs = '. Dumper(\%row_macs));
+debug(0, '\%row_macs = '. Dumper(\%row_macs));
 debug (3, (scalar keys %row_macs) . " mac addresses in output row list\n");
 
 my @rows = sort keys %row_macs;
@@ -257,7 +257,14 @@ for my $r (@rows) {
     push @row, qw(? -);
   }
 
+  # my $row_fdb = 
   for my $c (@columns) {
+    #   $row_macs{$f->{mac_address}}->{fdb}->{$f->{device_id}}->{$f->{fdb_id}} = $f;
+    my $rc_fdb = $row_macs{$r}->{fdb}->{$c->{device_id}};
+    print Dumper($c, $r,  $rc_fdb);
+    die "in body \n";
+    #   $row_macs{$f->{mac_address}}->{fdb}->{$f->{device_id}}->{$f->{fdb_id}} = $f;
+ 
     my $ports ;#  = $portmap{$r->{device_id}}->{$c->{vlan_vlan}} ;
     my @entries =();
     for my $p (@$ports) {
