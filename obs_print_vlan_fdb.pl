@@ -216,16 +216,16 @@ for my $f (@vlan_fdb) {
 
   $row_macs{$f->{mac_address}}->{fdb}->{$f->{device_id}}->{$f->{fdb_id}} = $f;
 } 
-
 debug(5, '\%row_macs = '. Dumper(\%row_macs));
 debug (3, (scalar keys %row_macs) . " mac addresses in output row list\n");
 
+my @rows = sort keys %row_macs;
+debug (0, (join ';',  @rows) . "\n");
 
+my @header1 = ('mac' , 'device', 'IP' ,  map {  $_->{sysName} } @columns);
+my @header2 = ('', '', '' ,  map {  $_->{ip} } @columns);
 
-
-die "==== cutting edge =================~~~~~~~~~~~~~~~~~~~~~~~~~--------------------------";
-
-my @rows;
+# die "==== cutting edge =================~~~~~~~~~~~~~~~~~~~~~~~~~--------------------------";
 
 
 
@@ -240,8 +240,8 @@ my %portmap = ();
 
 
 # build table
-my @header1 = ('device' , 'name', 'IP' ,  map {  $_->{vlan_vlan} } @columns);
-my @header2 = ('', '', '' ,  map {  $_->{vlan_name} } @columns);
+# my @header1 = ('device' , 'name', 'IP' ,  map {  $_->{vlan_vlan} } @columns);
+# my @header2 = ('', '', '' ,  map {  $_->{vlan_name} } @columns);
 
 my $sep =  "\n ";
 if ($outmode eq 'csv') {
@@ -253,9 +253,10 @@ if ($outmode eq 'csv') {
 my @body; 
 for my $r (@rows) {
   my @row;
-  push @row, $r->{device_id}, $r->{sysName}, $r->{ip};
+  # push @row, $r->{device_id}, $r->{sysName}, $r->{ip};
+  push @row, $r;
   for my $c (@columns) {
-    my $ports = $portmap{$r->{device_id}}->{$c->{vlan_vlan}} ;
+    my $ports ;#  = $portmap{$r->{device_id}}->{$c->{vlan_vlan}} ;
     my @entries =();
     for my $p (@$ports) {
     ###  my $entry =  $ports_byID{ $p->{port_id} }->{'port_label'}  ;
