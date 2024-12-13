@@ -261,17 +261,19 @@ for my $r (@rows) {
   for my $c (@columns) {
     #   $row_macs{$f->{mac_address}}->{fdb}->{$f->{device_id}}->{$f->{fdb_id}} = $f;
     my $rc_fdb = $row_macs{$r}->{fdb}->{$c->{device_id}};
-    print Dumper($c, $r,  $rc_fdb);
-    die "in body \n";
+    # print Dumper($c, $r,  $rc_fdb);
+    # die "in body \n";
     #   $row_macs{$f->{mac_address}}->{fdb}->{$f->{device_id}}->{$f->{fdb_id}} = $f;
  
-    my $ports ;#  = $portmap{$r->{device_id}}->{$c->{vlan_vlan}} ;
-    my @entries =();
-    for my $p (@$ports) {
+    # my $ports ;#  = $portmap{$r->{device_id}}->{$c->{vlan_vlan}} ;
+    my @entries = sort  { $a <=> $b } 
+	map { $rc_fdb->{$_}->{vlan_id}  }
+	keys %$rc_fdb;
+    # for my $p (@$ports) {
     ###  my $entry =  $ports_byID{ $p->{port_id} }->{'port_label'}  ;
     ###  $entry .= '-U' if $ports_byID{ $p->{port_id} }->{'ifVlan'} == $c->{vlan_vlan} ; 
     ###  push @entries, $entry;
-    }
+    # }
     push @row, join $sep, @entries  ;
   }
   push  @body, \@row ;
