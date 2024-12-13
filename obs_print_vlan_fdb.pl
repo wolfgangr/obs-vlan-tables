@@ -200,10 +200,11 @@ my @header2 = ('', '', '' ,  map {  $_->{ip} } @columns);
 my $cfspec;
 if ($outmode eq 'pretty') {
   # my $sep = ', '; #   "\n ";
-  $cfspec = { is => ',' , nl => "\n ", ipl => 3, devNl => 15 };
+  # $cfspec = { is => ',' , nl => "\n ", ipl => 3, devNl => 15 };
+  $cfspec = { is => ',' , nl => "\n~", cpl => 15, devNl => 15 };
 } elsif ($outmode eq 'csv') {
   # $sep = '|';
-  $cfspec = { is => '|' }
+  $cfspec = { is => ':' }
 } elsif ($outmode eq 'html') {
   # $sep = '<br>';
   $cfspec = { is => ',' , nl => "<br>", ipl => 3, devNl => 30 };
@@ -237,8 +238,27 @@ for my $r (@rows) {
     # push @row, join ':', #   ( $cfspec->{is} // ':') ,
     my @entries =  sort  { $a <=> $b } 
 	map { $rc_fdb->{$_}->{vlan_id}  } keys %$rc_fdb;
-    my $cell = join ':', @entries  ;
-    # my $cell = shift @entries;
+    # my $cell = join ':', @entries  ;
+    my $cell = shift @entries;
+    if (scalar @entries) {   	# i.e. more than one entry
+      my $icnt = 1;
+      my $ccnt = length($cell);
+      while (my $ne = shift @entries) {
+        ## if (($icnt >=  ($cfspec->{ipl}//'')) or ( $ccnt >=  ($cfspec->{cpl}//''))) {
+        if ( (defined $cfspec->{ipl} and $icnt >=  $cfspec->{ipl} ) or
+             (defined $cfspec->{cpl} and $ccnt >=  $cfspec->{cpl} ) )   {
+           # new line
+          $cell .= $cfspec->{nl} . $ne;
+          $icnt = 1;
+          $ccnt = length($ne);
+        } else {    # continue on line
+          $cell .= $cfspec->{is} . $ne; 
+          $icnt++;
+          $ccnt += length($cfspec->{is}) + length($ne);
+        }
+
+      }
+    }
     push @row, $cell;
     # push @row, join $sep, @entries  ;
   }
