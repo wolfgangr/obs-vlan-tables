@@ -98,8 +98,10 @@ my @vlans = retrieve_sql($vl_sql);
 debug (3, scalar @vlans . " vlans: rows found.\n");
 # print '\@vlans = ' , Dumper(\@vlans);
 my %vlans_byID = map { ( $_->{vlan_ID} , $_  ) } @vlans;
-debug(5,  '\%vlans_byID = ', Dumper(\%vlans_byID)) ;
-
+debug(5,  '\%vlans_byID = ' .  Dumper(\%vlans_byID)) ;
+my %vlans_by_vlan = map { ( $_->{vlan_vlan} , $_  ) } @vlans;
+debug(5,  '\%vlans_by_vlan = ' .  Dumper(\%vlans_by_vlan)) ;
+# die " die at =============== vlan by ID \n";
 
 # --- vlans_fdb ---
 my $vlfdb_sql = <<"EOVLFDB";
@@ -160,10 +162,13 @@ if ($outmode eq 'dump') {
 #	#}
 
 # devices are column headers for fdb listing
-my $re2 = qr/$grep_device/;
+my $red = qr/$grep_device/;
+my $rev = qr/$grep_vlan/;
+
+
 my %devices_by_name = 
 	map { ( $_->{'sysName'} , $_  ) } 
-	grep { $_ =~ /$re2/ or $_->{sysName} =~ /$re2/ }
+	grep { $_ =~ /$red/ or $_->{sysName} =~ /$red/ }
 	@devices;
 # print '\%devices_name = ', Dumper(\%devices_by_name);
 # print "-------- row headers ------------\n";
@@ -180,32 +185,36 @@ debug(5, '\@columns = '. Dumper(\@columns));
 # 	grep {  $_->{vlan_vlan} =~ /$re/ } @vlan_fdb;
 
 my %row_macs = ();
-my $re = qr/$grep_vlan/;
 for my $f (@vlan_fdb) {
-  my $myvl = $vlans_byID{$f->{vlan_id}};
+  my $myvl   = $vlans_by_vlan{$f->{vlan_id}};
+  my $mysdev = $devices_byID{$f->{device_id}};
+  # printf STDERR "| %s | %s | %s |-| %s | %s | %s | \n ", 
+  # 	$myvl, $myvl->{vlan_vlan}, $myvl->{vlan_name} ,
+  #	$mysdev, $f->{device_id}, $mysdev->{sysName} ;
+
   # next unless defined $myvl->{vlan_vlan} ;
-  next unless  $myvl->{vlan_vlan} =~ /$re/ or $myvl->{vlan_name} =~ /$re/;
-  
+  if ( $rev  and defined $myvl) { # and defined $myvl  ) {
+  # if (0) {
+    # next unless defined $myvl;
+    next unless defined $myvl->{vlan_vlan};
+    next unless defined $myvl->{vlan_name};
+    next unless  ( $myvl->{vlan_vlan} =~ /$rev/ or $myvl->{vlan_name} =~ /$rev/ ) ;
+  }
+
+  # my $mysdev = $devices_byID{$f->{device_id}};
+  if ( $red ) {   # and defined $mysdev ) {
+  # if (0) { 
+    next  unless ( $f->{device_id}  =~ /$red/ or  $mysdev->{sysName} =~ /$red/ ) ;
+  }
+
   $row_macs{$f->{mac_address}}->{fdb}->{$f->{device_id}}->{$f->{fdb_id}} = $f;
 } 
 
-debug(0, '\%row_macs = '. Dumper(\%row_macs));
+debug(5, '\%row_macs = '. Dumper(\%row_macs));
 debug (3, (scalar keys %row_macs) . " mac addresses in output row list\n");
 
-# %mac_rows = (%mac_rows, 
-#	map {$_->{mac_address}}  @vlan_fdb );
-# for my $f (@vlan_fdb) { $mac_rows{$f->{mac_address}}->{fdb}++ ; }
 
-# debug(5, '\%mac_rows = '. Dumper(\%mac_rows));
-# debug (3, (scalar keys %mac_rows) . " mac addresses in output row list\n");
 
-# for my $m 
-
-# for (@rows) {
-
-#  printf "device id = %3d; IP = %14s; name = %s \n", 
-#        $_->{device_id}, $_->{ip}, $_->{sysName};
-# }
 
 die "==== cutting edge =================~~~~~~~~~~~~~~~~~~~~~~~~~--------------------------";
 
