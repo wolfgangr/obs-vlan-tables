@@ -193,11 +193,18 @@ for my $f (@vlan_fdb) {
   #	$mysdev, $f->{device_id}, $mysdev->{sysName} ;
 
   # next unless defined $myvl->{vlan_vlan} ;
+
+  if ($options{vlan}) {
+    next unless defined $myvl;
+    next unless defined $myvl->{vlan_vlan};
+    next unless defined $myvl->{vlan_name};
+
+  }
   if ( $rev  and defined $myvl) { # and defined $myvl  ) {
   # if (0) {
     # next unless defined $myvl;
-    next unless defined $myvl->{vlan_vlan};
-    next unless defined $myvl->{vlan_name};
+    # next unless defined $myvl->{vlan_vlan};
+    # next unless defined $myvl->{vlan_name};
     next unless  ( $myvl->{vlan_vlan} =~ /$rev/ or $myvl->{vlan_name} =~ /$rev/ ) ;
   }
 
