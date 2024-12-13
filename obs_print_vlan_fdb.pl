@@ -239,8 +239,12 @@ for my $r (@rows) {
     #   $row_macs{$f->{mac_address}}->{fdb}->{$f->{device_id}}->{$f->{fdb_id}} = $f;
     my $rc_fdb = $row_macs{$r}->{fdb}->{$c->{device_id}};
     # print Dumper($c, $r,  $rc_fdb);
-    my @entries =  sort  { $a <=> $b } 
-	map { $rc_fdb->{$_}->{vlan_id}  } keys %$rc_fdb;
+    my @entries =  
+	sort  { $a <=> $b }
+	grep { $_ >= $min_vlan } 
+	map { $rc_fdb->{$_}->{vlan_id}  } 
+	keys %$rc_fdb;
+
     my $cell = shift @entries;  # simple case - fine for most cells
 
     if (scalar @entries) {   	# i.e. more than one entry
