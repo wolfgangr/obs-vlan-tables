@@ -189,11 +189,24 @@ my @rows = sort keys %row_macs;
 my @header1 = ('mac' , 'device', 'IP' ,  map {  $_->{sysName} } @columns);
 my @header2 = ('', '', '' ,  map {  $_->{ip} } @columns);
 
-my $sep = ', '; #   "\n ";
-if ($outmode eq 'csv') {
-  $sep = '|';
+
+# cell format spec for multiple entries
+# devNl => device name length
+# nl    => new line separator
+# is    => in line separator
+# ipl   => items per line
+# cpl   => characters per lin
+
+my $cfspec;
+if ($outmode eq 'pretty') {
+  # my $sep = ', '; #   "\n ";
+  $cfspec = { is => ',' , nl => "\n ", ipl => 3, devNl => 15 };
+} elsif ($outmode eq 'csv') {
+  # $sep = '|';
+  $cfspec = { is => '|' }
 } elsif ($outmode eq 'html') {
-  $sep = '<br>';
+  # $sep = '<br>';
+  $cfspec = { is => ',' , nl => "<br>", ipl => 3, devNl => 30 };
 }
 
 my @body; 
@@ -206,7 +219,12 @@ for my $r (@rows) {
     $dtid = $devices_byID{ $d_t->{device_id}   };
   }
   if ($dtid ) {
-    push @row, substr( $dtid->{sysName} ,0,15) ;
+    if (my $ll = $cfspec->{devNl}) {  # limit device name length
+      push @row, substr( $dtid->{sysName} ,0,$ll) ;
+    } else {
+      push @row,  $dtid->{sysName}  ;
+    }
+
     push @row, $dtid->{ip};
   } else {
     push @row, qw(? -);
@@ -216,10 +234,12 @@ for my $r (@rows) {
     #   $row_macs{$f->{mac_address}}->{fdb}->{$f->{device_id}}->{$f->{fdb_id}} = $f;
     my $rc_fdb = $row_macs{$r}->{fdb}->{$c->{device_id}};
     # print Dumper($c, $r,  $rc_fdb);
-    push @row, join $sep, 
-    	sort  { $a <=> $b } 
-	map { $rc_fdb->{$_}->{vlan_id}  }
-	keys %$rc_fdb;
+    # push @row, join ':', #   ( $cfspec->{is} // ':') ,
+    my @entries =  sort  { $a <=> $b } 
+	map { $rc_fdb->{$_}->{vlan_id}  } keys %$rc_fdb;
+    my $cell = join ':', @entries  ;
+    # my $cell = shift @entries;
+    push @row, $cell;
     # push @row, join $sep, @entries  ;
   }
   push  @body, \@row ;
